@@ -7,8 +7,8 @@ import java.nio.ByteBuffer;
  */
 
 public interface LiveMapServerCommunicatorListener {
-    boolean readyToWriteToLiveMapServer(ByteBuffer buffer);
-    void readyTOReadFromLiveMapServer(ByteBuffer buffer);
+    boolean readyToWriteToLiveMapServer(ByteBuffer[] buffer);
+    void readyToReadFromLiveMapServer(ByteBuffer buffer);
     void timedoutRequest(String host, int port);
     void serverCommunicationError(Error error);
 }
