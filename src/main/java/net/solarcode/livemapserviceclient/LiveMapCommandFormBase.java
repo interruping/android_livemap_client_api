@@ -55,7 +55,7 @@ public class LiveMapCommandFormBase {
     }
 
     protected LiveMapCommandFormBase(int typeID){
-        typeID = typeID;
+        _typeID = typeID;
         _segmentPool = new ArrayList<Byte>();
         _segmentLastestIndex = 0;
     }
@@ -70,12 +70,12 @@ public class LiveMapCommandFormBase {
 
     }
 
-    protected LiveMapCommandFormBase(int typeID, byte[] inputData) {
+    protected LiveMapCommandFormBase(int typeID, ByteBuffer inputData) {
         _typeID = typeID;
         _segmentPool = new ArrayList<Byte>();
         _segmentLastestIndex = 0;
 
-        for ( byte abyte : inputData ){
+        for ( byte abyte : inputData.array() ){
             _segmentPool.add(abyte);
             _segmentLastestIndex++;
         }
@@ -121,6 +121,10 @@ public class LiveMapCommandFormBase {
         }
 
         return serializeBuffer;
+    }
+
+    public int getEntireSize() {
+        return _segmentLastestIndex;
     }
 
 }

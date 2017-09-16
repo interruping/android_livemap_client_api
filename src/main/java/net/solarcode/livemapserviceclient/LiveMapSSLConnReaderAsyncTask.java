@@ -67,7 +67,7 @@ public class LiveMapSSLConnReaderAsyncTask  extends AsyncTask<InputStream, Void,
                 //error handle
             }
 
-            int bodyDataSize = convertirOctetEnEntier(header4ByteData);
+            int bodyDataSize = ByteUtility.convertirOctetEnEntier(header4ByteData);
 
             byte[] bodyBuffer = new byte[bodyDataSize];
 
@@ -90,13 +90,5 @@ public class LiveMapSSLConnReaderAsyncTask  extends AsyncTask<InputStream, Void,
 
     }
 
-    public static int convertirOctetEnEntier(byte[] b){
-        int MASK = 0xFF;
-        int result = 0;
-        result = b[0] & MASK;
-        result = result + ((b[1] & MASK) << 8);
-        result = result + ((b[2] & MASK) << 16);
-        result = result + ((b[3] & MASK) << 24);
-        return result;
-    }
+
 }
