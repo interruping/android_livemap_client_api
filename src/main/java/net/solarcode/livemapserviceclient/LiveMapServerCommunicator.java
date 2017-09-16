@@ -22,6 +22,7 @@ public class LiveMapServerCommunicator implements LiveMapServerCommunicatorImple
             case SSLTCPSERVER:
                 try {
                     _pimple = new LiveMapSSLServerCommunicator(host, port);
+
                 } catch (Exception e) {
                     _pimple = null;
                     e.printStackTrace();

@@ -6,50 +6,51 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.security.cert.X509Certificate;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.net.SocketFactory;
 import javax.net.ssl.HandshakeCompletedEvent;
 import javax.net.ssl.HandshakeCompletedListener;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 /**
  * Created by geonyounglim on 2017. 9. 13..
  */
 
-public class LiveMapSSLServerCommunicator implements LiveMapServerCommunicatorImplementor, HandshakeCompletedListener {
+public class LiveMapSSLServerCommunicator implements LiveMapServerCommunicatorImplementor, LiveMapSSLSocketAsyncBuilderListener, LiveMapSSLConnWriterAsyncTaskListener, LiveMapSSLConnReaderAsyncTaskListener {
 
     private LiveMapServerCommunicatorListener _listener;
 
-    private SSLSocket _socket;
+    private String _host;
+    private int _port;
 
-    private BufferedReader _bufferedReader;
-    private BufferedWriter _bufferedWriter;
+    private SSLSocket[] _socketRef;
+
+    private InputStream[] _inputStreamRef;
+    private OutputStream[] _outputStreamRef;
 
     private long _intervalMiliseconds;
+    private Timer _timer;
 
     public LiveMapSSLServerCommunicator(String host, int port) throws IOException, SSLHandshakeException {
-        SocketFactory sf = SSLSocketFactory.getDefault();
+        _host = host;
+        _port = port;
+        _socketRef = new SSLSocket[1];
+        _inputStreamRef = new InputStream[1];
+        _outputStreamRef = new OutputStream[1];
+        _intervalMiliseconds = 100/* miliseconds */;
 
-        try {
-            _socket = (SSLSocket) sf.createSocket(host, port);
-        } catch (IOException e) {
-            throw e;
-        }
 
-        HostnameVerifier hv = HttpsURLConnection.getDefaultHostnameVerifier();
-        SSLSession s = _socket.getSession();
-
-// Verify that the certicate hostname is for mail.google.com
-// This is due to lack of SNI support in the current SSLSocket.
-        if (!hv.verify(host, s)) {
-            throw new SSLHandshakeException("Expect" + host + ", " +
-                    "found " + s.getPeerPrincipal());
-        }
     }
 
     @Override
@@ -69,7 +70,7 @@ public class LiveMapSSLServerCommunicator implements LiveMapServerCommunicatorIm
 
     @Override
     public  long getInterval() {
-        return 0;
+        return _intervalMiliseconds;
     }
 
     @Override
@@ -95,12 +96,11 @@ public class LiveMapSSLServerCommunicator implements LiveMapServerCommunicatorIm
     @Override
     public void open() {
 
-        try {
-            _socket.addHandshakeCompletedListener(this);
-            _socket.startHandshake();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+      LiveMapSSLSocketAsyncBuilder socketBuilder = new LiveMapSSLSocketAsyncBuilder(_host, _port, _outputStreamRef, _inputStreamRef);
+        socketBuilder.setListener(this);
+        socketBuilder.trustAllCerts(true);
+        socketBuilder.execute(_socketRef);
+
     }
 
     @Override
@@ -109,12 +109,55 @@ public class LiveMapSSLServerCommunicator implements LiveMapServerCommunicatorIm
     }
 
     @Override
-    public void handshakeCompleted(HandshakeCompletedEvent handshakeCompletedEvent) {
-        try {
-            _bufferedReader = new BufferedReader(new InputStreamReader(_socket.getInputStream()));
-            _bufferedWriter = new BufferedWriter(new OutputStreamWriter(_socket.getOutputStream()));
-        } catch (Exception e){
-            e.printStackTrace();
-        }
+    public void SSLSocketBuildComplete() {
+        LiveMapSSLConnWriterAsyncTask writerAsyncTask = new LiveMapSSLConnWriterAsyncTask(_listener);
+        writerAsyncTask.setTaskListener(this);
+        writerAsyncTask.execute(_outputStreamRef[0]);
+    }
+
+    @Override
+    public void SSLSocketBuildFail(Exception e) {
+
+    }
+
+    @Override
+    public void WriterAsyncTaskComplete() {
+//        TimerTask readerTaskWillRun = new TimerTask() {
+//            @Override
+//            public void run() {
+//                LiveMapSSLConnReaderAsyncTask readerAsyncTask = new LiveMapSSLConnReaderAsyncTask(_listener);
+//                readerAsyncTask.setTaskListener(LiveMapSSLServerCommunicator.this);
+//                readerAsyncTask.execute(_bufferedReaderRef[0]);
+//            }
+//        };
+//        _timer = new Timer();
+//        _timer.schedule(readerTaskWillRun, _intervalMiliseconds);
+                LiveMapSSLConnReaderAsyncTask readerAsyncTask = new LiveMapSSLConnReaderAsyncTask(_listener);
+                readerAsyncTask.setTaskListener(LiveMapSSLServerCommunicator.this);
+                readerAsyncTask.execute(_inputStreamRef[0]);
+    }
+
+    @Override
+    public void ReaderAsyncTaskComplete() {
+        TimerTask writerTaskWillRun = new TimerTask() {
+            @Override
+            public void run() {
+                LiveMapSSLConnWriterAsyncTask writerAsyncTask = new LiveMapSSLConnWriterAsyncTask(_listener);
+                writerAsyncTask.setTaskListener(LiveMapSSLServerCommunicator.this);
+                writerAsyncTask.execute(_outputStreamRef[0]);
+            }
+        };
+        _timer = new Timer();
+        _timer.schedule(writerTaskWillRun, _intervalMiliseconds);
+    }
+
+    @Override
+    public void WriterAsyncTaskFail(Exception e) {
+
+    }
+
+    @Override
+    public void ReaderAsyncTaskFail(Exception e) {
+
     }
 }

@@ -3,17 +3,25 @@ package net.solarcode.livemapserviceclient;
 import android.os.AsyncTask;
 
 import java.io.BufferedReader;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 /**
  * Created by geonyounglim on 2017. 9. 13..
  */
 
-public class LiveMapSSLConnReaderAsyncTask  extends AsyncTask<BufferedReader, Void, ByteBuffer> {
+public class LiveMapSSLConnReaderAsyncTask  extends AsyncTask<InputStream, Void, ByteBuffer> {
     LiveMapServerCommunicatorListener _targetListener;
+    LiveMapSSLConnReaderAsyncTaskListener _listener;
 
     public LiveMapSSLConnReaderAsyncTask(LiveMapServerCommunicatorListener targetListener) {
         super();
+        _targetListener = targetListener;
+    }
+
+    public void setTaskListener(LiveMapSSLConnReaderAsyncTaskListener taskListener) {
+        _listener = taskListener;
     }
 
     @Override
@@ -26,6 +34,7 @@ public class LiveMapSSLConnReaderAsyncTask  extends AsyncTask<BufferedReader, Vo
         super.onPostExecute(byteBuffer);
 
         _targetListener.readyToReadFromLiveMapServer(byteBuffer);
+        _listener.ReaderAsyncTaskComplete();
     }
 
     @Override
@@ -44,22 +53,50 @@ public class LiveMapSSLConnReaderAsyncTask  extends AsyncTask<BufferedReader, Vo
     }
 
     @Override
-    protected ByteBuffer doInBackground(BufferedReader... params) {
-        BufferedReader bufferedReader = params[0];
+    protected ByteBuffer doInBackground(InputStream... params) {
+        InputStream inputStream = params[0];
 
-        StringBuffer tmpStringBuffer = new StringBuffer();
-        String tmpStr = null;
-
+        ByteBuffer returnByte = null;
         try {
-            while ( (tmpStr = bufferedReader.readLine()) != null ) {
-                tmpStringBuffer.append(tmpStr);
-            }
-        } catch (Exception e) {
 
+            final int sizeOfInt = 4;
+            byte[] header4ByteData = new byte[sizeOfInt];
+            int headerDataReadSize = inputStream.read(header4ByteData);
+
+            if ( headerDataReadSize != sizeOfInt ){
+                //error handle
+            }
+
+            int bodyDataSize = convertirOctetEnEntier(header4ByteData);
+
+            byte[] bodyBuffer = new byte[bodyDataSize];
+
+            int bodyDataReadSize = inputStream.read(bodyBuffer);
+
+            if ( bodyDataReadSize != bodyDataSize ){
+                //error handle
+            }
+
+            returnByte = ByteBuffer.allocate(bodyDataSize);
+            returnByte.put(bodyBuffer, 0, bodyDataSize);
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
 
-        return ByteBuffer.wrap(tmpStringBuffer.toString().getBytes());
 
+        return returnByte;
+
+    }
+
+    public static int convertirOctetEnEntier(byte[] b){
+        int MASK = 0xFF;
+        int result = 0;
+        result = b[0] & MASK;
+        result = result + ((b[1] & MASK) << 8);
+        result = result + ((b[2] & MASK) << 16);
+        result = result + ((b[3] & MASK) << 24);
+        return result;
     }
 }
