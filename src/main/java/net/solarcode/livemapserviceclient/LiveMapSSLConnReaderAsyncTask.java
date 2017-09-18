@@ -67,7 +67,7 @@ public class LiveMapSSLConnReaderAsyncTask  extends AsyncTask<InputStream, Void,
                 //error handle
             }
 
-            int bodyDataSize = ByteUtility.convertirOctetEnEntier(header4ByteData);
+            int bodyDataSize = ByteUtility.byteArrayToInt(header4ByteData);
 
             byte[] bodyBuffer = new byte[bodyDataSize];
 

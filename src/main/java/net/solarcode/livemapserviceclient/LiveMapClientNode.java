@@ -5,8 +5,13 @@ package net.solarcode.livemapserviceclient;
  */
 
 public class LiveMapClientNode implements LiveMapIDHolder<Integer> {
-
-    public class Coordinate {
+    public static Coordinate makeCoordinate(double latitude, double longitude) {
+        Coordinate coordinate = new Coordinate();
+        coordinate.latitude = latitude;
+        coordinate.longitude = longitude;
+        return coordinate;
+    }
+    public static class Coordinate {
         public double latitude = 0.0f;
         public double longitude = 0.0f;
     }

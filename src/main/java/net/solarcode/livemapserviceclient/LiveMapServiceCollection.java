@@ -28,23 +28,17 @@ public final class LiveMapServiceCollection {
 
         public void fillSegmentWithNodeInfo( LiveMapClientNode updateInfo){
             int id = updateInfo.getID();
-            ByteBuffer idBuffer = ByteBuffer.allocate(4);
-            idBuffer.order(ByteOrder.LITTLE_ENDIAN);
-            idBuffer.putInt(id);
-            _idSegmentInfo = addSegment(idBuffer);
+
+            _idSegmentInfo = addSegment(ByteUtility.intTo4Byte(id));
+
+
             Coordinate coordinate = updateInfo.getCoordinate();
 
             double lat = coordinate.latitude;
-            ByteBuffer latBuffer = ByteBuffer.allocate(8);
-            latBuffer.order(ByteOrder.LITTLE_ENDIAN);
-            latBuffer.putDouble(lat);
-            _latSegmentInfo = addSegment(latBuffer);
+            _latSegmentInfo = addSegment(ByteUtility.doubleTo8Byte(lat));
 
             double lon = coordinate.longitude;
-            ByteBuffer lonBuffer = ByteBuffer.allocate(8);
-            lonBuffer.order(ByteOrder.LITTLE_ENDIAN);
-            lonBuffer.putDouble(lon);
-            _latSegmentInfo = addSegment(lonBuffer);
+            _latSegmentInfo = addSegment(ByteUtility.doubleTo8Byte(lon));
 
         }
 
@@ -83,9 +77,80 @@ public final class LiveMapServiceCollection {
 
         Integer getID() {
             ByteBuffer _idData = readSegment(_idIntSegmentInfo);
-            int id = ByteUtility.convertirOctetEnEntier(_idData.array());
+            int id = ByteUtility.byteArrayToInt(_idData.array());
             return id;
         }
+    }
+
+    public static class LiveMapNearNodesInfo extends LiveMapCommandFormBase {
+        SegmentInfo _numOfNearNodeInfo = new SegmentInfo(0, 4);
+
+        public LiveMapNearNodesInfo() {
+            super(4);
+        }
+
+        public LiveMapNearNodesInfo( ByteBuffer inputData) {
+            super(4, inputData);
+
+
+        }
+
+        public void setNearNodes(LiveMapClientNode[] nearNodes) {
+
+            if ( getEntireSize() != 0 ){
+                return;
+            }
+
+            int countNumOfNearNode = nearNodes.length;
+
+            addSegment(ByteUtility.intTo4Byte(countNumOfNearNode));
+
+            for ( LiveMapClientNode nearNode : nearNodes) {
+                int id = nearNode.getID();
+                addSegment(ByteUtility.intTo4Byte(id));
+
+                final Coordinate coordinate = nearNode.getCoordinate();
+                addSegment(ByteUtility.doubleTo8Byte(coordinate.latitude));
+                addSegment(ByteUtility.doubleTo8Byte(coordinate.longitude));
+            }
+
+        }
+
+        public LiveMapClientNode[] getNearNodes() {
+
+            int readNumOfNearNode  = 0;
+            ByteBuffer numOfNearNodeBuffer = readSegment(_numOfNearNodeInfo);
+            readNumOfNearNode = ByteUtility.byteArrayToInt(numOfNearNodeBuffer.array());
+
+            LiveMapClientNode[] readNearNodes = new LiveMapClientNode[readNumOfNearNode];
+
+            final int sizeofID = 4;
+            final int sizeofLat = 8;
+            final int sizeofLon = 8;
+
+            int startBegin = 4;
+
+            for (int count = 0; count < readNumOfNearNode; count++ ) {
+
+                SegmentInfo idSegmentInfo = new SegmentInfo(startBegin, sizeofID);
+                SegmentInfo latSegmentInfo = new SegmentInfo(startBegin + sizeofID, sizeofLat);
+                SegmentInfo lonSegmentInfo = new SegmentInfo(startBegin + sizeofID + sizeofLat, sizeofLon);
+
+                startBegin += sizeofID + sizeofLat + sizeofLon;
+
+                int readId = ByteUtility.byteArrayToInt(readSegment(idSegmentInfo).array());
+                double readLat = ByteUtility.byteArrayToDouble(readSegment(latSegmentInfo).array());
+                double readLon = ByteUtility.byteArrayToDouble(readSegment(lonSegmentInfo).array());
+
+                readNearNodes[count] = new LiveMapClientNode(readId);
+                readNearNodes[count].setCoordinate(LiveMapClientNode.makeCoordinate(readLat, readLon));
+            }
+
+            return readNearNodes;
+
+        }
+
+
     }
 
 }

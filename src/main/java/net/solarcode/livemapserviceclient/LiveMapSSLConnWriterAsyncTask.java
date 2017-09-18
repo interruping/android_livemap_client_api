@@ -61,9 +61,9 @@ public class LiveMapSSLConnWriterAsyncTask extends AsyncTask<OutputStream, Void,
     @Override
     protected Void doInBackground(OutputStream... params) {
         OutputStream outputStream = params[0];
-        String forConvert = new String(_tmpBuffer[0].array());
+        //String forConvert = new String(_tmpBuffer[0].array());
         try {
-            int length_info_for_4byte_header = forConvert.getBytes().length;
+            int length_info_for_4byte_header = _tmpBuffer[0].array().length;
 
             ByteBuffer byteBuffer = ByteBuffer.allocate(4);
             byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -71,7 +71,7 @@ public class LiveMapSSLConnWriterAsyncTask extends AsyncTask<OutputStream, Void,
             byte[] fourByte = byteBuffer.array();
 
             outputStream.write(byteBuffer.array(), 0, 4);
-            outputStream.write(forConvert.getBytes(), 0, forConvert.getBytes().length);
+            outputStream.write(_tmpBuffer[0].array(), 0, length_info_for_4byte_header);
 
         } catch (IOException e) {
             e.printStackTrace();
