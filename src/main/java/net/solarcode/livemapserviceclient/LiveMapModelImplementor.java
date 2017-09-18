@@ -21,5 +21,5 @@ interface LiveMapModelImplementor {
     void addAndDrawMarkerAtMap();
     void removedMarkerFormMap();
     boolean updataMarkerPositionWithIdentifier();
-    
+
 }
