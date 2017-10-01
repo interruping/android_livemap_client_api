@@ -21,9 +21,8 @@ public final class LiveMapServiceCollection {
             fillSegmentWithNodeInfo(updateInfo);
         }
 
-        public LiveMapNodeUpdateBase (Integer typeID, LiveMapClientNode updateInfo, ByteBuffer inputData){
+        public LiveMapNodeUpdateBase (Integer typeID, ByteBuffer inputData){
             super(typeID, inputData);
-            fillSegmentWithNodeInfo(updateInfo);
         }
 
         public void fillSegmentWithNodeInfo( LiveMapClientNode updateInfo){
@@ -46,14 +45,14 @@ public final class LiveMapServiceCollection {
 
     public static class LiveMapUserNodeUpdate extends LiveMapNodeUpdateBase {
         public LiveMapUserNodeUpdate (LiveMapClientNode updateInfo) {
-            super(1, updateInfo);
+            super(LiveMapServiceType.USERNODEUPDATE, updateInfo);
         }
     }
 
     public static class LiveMapRequestUserInfo extends LiveMapCommandFormBase
     {
         public LiveMapRequestUserInfo () {
-            super(2);
+            super(LiveMapServiceType.REQUESTUSERINFO);
         }
 
     }
@@ -63,7 +62,7 @@ public final class LiveMapServiceCollection {
         SegmentInfo _idIntSegmentInfo = new SegmentInfo(0, 4);;
 
         public LiveMapSetUserInfo (Integer newID) {
-            super(3);
+            super(LiveMapServiceType.SETUSERINFO);
 
             ByteBuffer idBuffer = ByteBuffer.allocate(4);
             idBuffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -72,7 +71,7 @@ public final class LiveMapServiceCollection {
         }
 
         public LiveMapSetUserInfo (ByteBuffer inputData) {
-            super(3, inputData);
+            super(LiveMapServiceType.SETUSERINFO, inputData);
         }
 
         Integer getID() {
@@ -86,11 +85,11 @@ public final class LiveMapServiceCollection {
         SegmentInfo _numOfNearNodeInfo = new SegmentInfo(0, 4);
 
         public LiveMapNearNodesInfo() {
-            super(4);
+            super(LiveMapServiceType.NEARNODEINFO);
         }
 
         public LiveMapNearNodesInfo( ByteBuffer inputData) {
-            super(4, inputData);
+            super(LiveMapServiceType.NEARNODEINFO, inputData);
 
 
         }
@@ -151,6 +150,63 @@ public final class LiveMapServiceCollection {
         }
 
 
+
+    }
+
+    public static class UserViewpointUpdate extends LiveMapNodeUpdateBase {
+        private SegmentInfo _viewPointLat = new SegmentInfo(20, 8);
+        private SegmentInfo _viewPointLon = new SegmentInfo(28, 8);
+
+        public UserViewpointUpdate(LiveMapClientNode updateInfo, Coordinate viewPoint) {
+            super(LiveMapServiceType.USERVIEWPOINTUPDATE, updateInfo);
+
+            addSegment(ByteUtility.doubleTo8Byte(viewPoint.latitude));
+            addSegment(ByteUtility.doubleTo8Byte(viewPoint.longitude));
+
+        }
+    }
+
+    public static class UTF8MessageSend extends LiveMapCommandFormBase {
+        SegmentInfo _senderIdInfo = new SegmentInfo(0, 4);
+        SegmentInfo _recvIdInfo = new SegmentInfo(4, 4);
+        SegmentInfo _msgLengthInfo = new SegmentInfo(8, 4);
+
+        public UTF8MessageSend(int senderId, int receiverId, String msg) {
+            super(LiveMapServiceType.UTF8MESSAGESEND);
+
+            addSegment(ByteUtility.intTo4Byte(senderId));
+            addSegment(ByteUtility.intTo4Byte(receiverId));
+            addSegment(ByteUtility.intTo4Byte(msg.length()));
+
+            addSegment(ByteBuffer.wrap(msg.getBytes()));
+
+        }
+
+        public UTF8MessageSend(ByteBuffer inputData) {
+            super(LiveMapServiceType.UTF8MESSAGESEND, inputData);
+        }
+
+        public int senderId() {
+            int id = 0;
+            id = ByteUtility.byteArrayToInt(readSegment(_senderIdInfo).array());
+
+            return id;
+        }
+
+        public int receiverId() {
+            int id = 0;
+            id = ByteUtility.byteArrayToInt(readSegment(_recvIdInfo).array());
+
+            return id;
+        }
+
+        public String getMsg() {
+            int length = 0;
+            length = ByteUtility.byteArrayToInt(readSegment(_msgLengthInfo).array());
+
+            SegmentInfo msgSegmentInfo = new SegmentInfo(12, length);
+            return new String(readSegment(msgSegmentInfo).array());
+        }
     }
 
 }

@@ -1,14 +1,17 @@
 package net.solarcode.livemapserviceclient;
 
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.renderscript.ScriptGroup;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.net.UnknownHostException;
 import java.security.cert.X509Certificate;
 
 import javax.net.SocketFactory;
@@ -36,6 +39,7 @@ public class LiveMapSSLSocketAsyncBuilder extends AsyncTask<SSLSocket[], Void, V
 
     private TrustManager[] _trustAllCerts;
 
+    private Handler _mainHandler;
 
 
     public LiveMapSSLSocketAsyncBuilder(String host, int port, OutputStream[] outputStreamRef, InputStream[] inputStreamRef) {
@@ -45,6 +49,8 @@ public class LiveMapSSLSocketAsyncBuilder extends AsyncTask<SSLSocket[], Void, V
 
         _outputStreamRef = outputStreamRef;
         _inputStreamRef = inputStreamRef;
+
+        _mainHandler = new Handler();
 
     }
 
@@ -96,26 +102,67 @@ public class LiveMapSSLSocketAsyncBuilder extends AsyncTask<SSLSocket[], Void, V
         try {
 
             SSLSocket[] socketRef = params[0];
+            try {
+                if (_isAllTrust) {
+                    SSLContext sc = SSLContext.getInstance("SSL");
+                    sc.init(null, _trustAllCerts, new java.security.SecureRandom());
 
-            if (_isAllTrust) {
-                SSLContext sc = SSLContext.getInstance("SSL");
-                sc.init(null, _trustAllCerts, new java.security.SecureRandom());
+                    SSLSocketFactory sf = sc.getSocketFactory();
+                    socketRef[0] = (SSLSocket) sf.createSocket(_host, _port);
+                } else {
+                    SocketFactory sf = SSLSocketFactory.getDefault();
+                    socketRef[0] = (SSLSocket) sf.createSocket(_host, _port);
+                }
 
-                SSLSocketFactory sf = sc.getSocketFactory();
-                socketRef[0] = (SSLSocket) sf.createSocket(_host, _port);
-            } else {
-                SocketFactory sf = SSLSocketFactory.getDefault();
-                socketRef[0] = (SSLSocket) sf.createSocket(_host, _port);
+            } catch (final IllegalArgumentException e) {
+                _mainHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        _listener.illegalArgumentError(new Error(e.getMessage(), e.getCause()));
+
+                    }
+                });
+                this.cancel(true);
+                return null;
+            } catch (final UnknownHostException e ) {
+                _mainHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        _listener.unknownHostError(new Error(e.getMessage(), e.getCause()));
+                    }
+                });
+                this.cancel(true);
+                return null;
+            } catch (final SecurityException e ) {
+                _mainHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        _listener.securityError(new Error(e.getMessage(), e.getCause()));
+                    }
+                });
+                this.cancel(true);
+                return null;
+            } catch (final IOException e  ) {
+                _mainHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        _listener.IOError(new Error(e.getMessage(), e.getCause()));
+                    }
+                });
+                this.cancel(true);
+                return null;
+            } catch ( final Exception e ) {
+                _mainHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        _listener.unknownError(new Error(e.getMessage(), e.getCause()));
+                    }
+                });
             }
-//                    HostnameVerifier hv = HttpsURLConnection.getDefaultHostnameVerifier();
-//                    SSLSession s = _socket.getSession();
-//
-//// Verify that the certicate hostname is for mail.google.com
-//// This is due to lack of SNI support in the current SSLSocket.
-//                    if (!hv.verify(_host, s)) {
-//                        throw new SSLHandshakeException("Expect" + _host + ", " +
-//                                "found " + s.getPeerPrincipal());
-//                    }
+
+//            socketRef[0].setSoTimeout(3000);
+//            socketRef[0].getInetAddress().isReachable(3000);
+
             _inputStreamRef[0] = socketRef[0].getInputStream();
             _outputStreamRef[0] = socketRef[0].getOutputStream();
 
@@ -125,6 +172,8 @@ public class LiveMapSSLSocketAsyncBuilder extends AsyncTask<SSLSocket[], Void, V
 
         return null;
     }
+
+
 
     public void setListener(LiveMapSSLSocketAsyncBuilderListener listener) {
         _listener = listener;

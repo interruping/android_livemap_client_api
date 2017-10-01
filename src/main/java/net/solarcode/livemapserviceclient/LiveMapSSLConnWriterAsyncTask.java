@@ -1,6 +1,8 @@
 package net.solarcode.livemapserviceclient;
 
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -19,10 +21,13 @@ public class LiveMapSSLConnWriterAsyncTask extends AsyncTask<OutputStream, Void,
 
     private ByteBuffer[] _tmpBuffer;
 
+    Handler _mainHandler;
+
     public LiveMapSSLConnWriterAsyncTask(LiveMapServerCommunicatorListener targetListener) {
         super();
         _tmpBuffer = new ByteBuffer[1];
         _targetListener = targetListener;
+        _mainHandler = new Handler(Looper.getMainLooper());
     }
 
     public void setTaskListener(LiveMapSSLConnWriterAsyncTaskListener listener) {
@@ -32,7 +37,29 @@ public class LiveMapSSLConnWriterAsyncTask extends AsyncTask<OutputStream, Void,
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        _targetListener.readyToWriteToLiveMapServer(_tmpBuffer);
+
+
+
+        boolean isReady = _targetListener.readyToWriteToLiveMapServer(_tmpBuffer);
+
+
+
+        if ( isReady == false ){
+
+           LiveMapCommandDefault toEncodeCommand = new LiveMapCommandDefault();
+                    ByteBuffer typeBuffer = ByteBuffer.allocate(4);
+            typeBuffer.order(ByteOrder.LITTLE_ENDIAN);
+            typeBuffer.putInt(toEncodeCommand.type());
+
+            ByteBuffer commandBuffer = toEncodeCommand.serialize();
+
+            ByteBuffer resultBuffer = ByteBuffer.allocate(typeBuffer.capacity() + commandBuffer.capacity());
+            resultBuffer.put(typeBuffer.array());
+
+            resultBuffer.put(commandBuffer.array());
+            _tmpBuffer[0] = resultBuffer;
+
+        }
 
     }
 
@@ -73,8 +100,24 @@ public class LiveMapSSLConnWriterAsyncTask extends AsyncTask<OutputStream, Void,
             outputStream.write(byteBuffer.array(), 0, 4);
             outputStream.write(_tmpBuffer[0].array(), 0, length_info_for_4byte_header);
 
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (final IOException e) {
+            _mainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    _listener.IOError(new Error(e.getMessage(), e.getCause()));
+                }
+            });
+            cancel(true);
+            return null;
+        } catch (final Exception e) {
+            _mainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    _listener.unknownError(new Error(e.getMessage(), e.getCause()));
+                }
+            });
+            cancel(true);
+            return null;
         }
         return null;
     }

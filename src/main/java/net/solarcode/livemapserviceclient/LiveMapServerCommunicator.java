@@ -5,21 +5,20 @@ package net.solarcode.livemapserviceclient;
  */
 enum ServerType {
     TCPSERVER,
-    SSLTCPSERVER,
+    SSLSOCKETSERVER,
 }
 public class LiveMapServerCommunicator implements LiveMapServerCommunicatorImplementor {
 
     private LiveMapServerCommunicatorImplementor _pimple;
 
-    public LiveMapServerCommunicator() {
-
+    private LiveMapServerCommunicator() {
     }
 
     public LiveMapServerCommunicator(ServerType serverType, String host, int port) {
         switch ( serverType ){
             case TCPSERVER:
                 break;
-            case SSLTCPSERVER:
+            case SSLSOCKETSERVER:
                 try {
                     _pimple = new LiveMapSSLServerCommunicator(host, port);
 

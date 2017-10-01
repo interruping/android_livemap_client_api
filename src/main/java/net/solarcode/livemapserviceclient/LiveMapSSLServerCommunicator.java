@@ -48,7 +48,7 @@ public class LiveMapSSLServerCommunicator implements LiveMapServerCommunicatorIm
         _socketRef = new SSLSocket[1];
         _inputStreamRef = new InputStream[1];
         _outputStreamRef = new OutputStream[1];
-        _intervalMiliseconds = 100/* miliseconds */;
+        _intervalMiliseconds = 200/* miliseconds */;
 
 
     }
@@ -110,31 +110,25 @@ public class LiveMapSSLServerCommunicator implements LiveMapServerCommunicatorIm
 
     @Override
     public void SSLSocketBuildComplete() {
+        _listener.serverCommunicationStart();
         LiveMapSSLConnWriterAsyncTask writerAsyncTask = new LiveMapSSLConnWriterAsyncTask(_listener);
         writerAsyncTask.setTaskListener(this);
         writerAsyncTask.execute(_outputStreamRef[0]);
-    }
-
-    @Override
-    public void SSLSocketBuildFail(Exception e) {
 
     }
 
     @Override
     public void WriterAsyncTaskComplete() {
-//        TimerTask readerTaskWillRun = new TimerTask() {
-//            @Override
-//            public void run() {
-//                LiveMapSSLConnReaderAsyncTask readerAsyncTask = new LiveMapSSLConnReaderAsyncTask(_listener);
-//                readerAsyncTask.setTaskListener(LiveMapSSLServerCommunicator.this);
-//                readerAsyncTask.execute(_bufferedReaderRef[0]);
-//            }
-//        };
-//        _timer = new Timer();
-//        _timer.schedule(readerTaskWillRun, _intervalMiliseconds);
+        TimerTask readerTaskWillRun = new TimerTask() {
+            @Override
+            public void run() {
                 LiveMapSSLConnReaderAsyncTask readerAsyncTask = new LiveMapSSLConnReaderAsyncTask(_listener);
                 readerAsyncTask.setTaskListener(LiveMapSSLServerCommunicator.this);
                 readerAsyncTask.execute(_inputStreamRef[0]);
+            }
+        };
+        _timer = new Timer();
+        _timer.schedule(readerTaskWillRun, _intervalMiliseconds);
     }
 
     @Override
@@ -152,12 +146,27 @@ public class LiveMapSSLServerCommunicator implements LiveMapServerCommunicatorIm
     }
 
     @Override
-    public void WriterAsyncTaskFail(Exception e) {
-
+    public void illegalArgumentError(Error err) {
+        _listener.illegalArgumentError(err);
     }
 
     @Override
-    public void ReaderAsyncTaskFail(Exception e) {
+    public void unknownHostError(Error err) {
+        _listener.unknownHostError(err);
+    }
 
+    @Override
+    public void securityError(Error err) {
+        _listener.securityError(err);
+    }
+
+    @Override
+    public void IOError(Error err) {
+        _listener.IOError(err);
+    }
+
+    @Override
+    public void unknownError(Error err) {
+        _listener.unknownError(err);
     }
 }

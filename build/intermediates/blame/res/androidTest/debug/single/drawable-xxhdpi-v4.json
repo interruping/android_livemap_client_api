@@ -120,12 +120,12 @@
         "source": "/Users/geonyounglim/.android/build-cache/c4aef7e0ac3640e15c0bbe4fad4ef50a991fc9e1/output/res/drawable-xxhdpi-v4/abc_btn_check_to_on_mtrl_000.png"
     },
     {
-        "merged": "/Users/geonyounglim/AndroidStudioProjects/LivemapClient/livemapserviceclient/build/intermediates/res/merged/androidTest/debug/drawable-xxhdpi-v4/abc_btn_switch_to_on_mtrl_00001.9.png",
-        "source": "/Users/geonyounglim/.android/build-cache/c4aef7e0ac3640e15c0bbe4fad4ef50a991fc9e1/output/res/drawable-xxhdpi-v4/abc_btn_switch_to_on_mtrl_00001.9.png"
-    },
-    {
         "merged": "/Users/geonyounglim/AndroidStudioProjects/LivemapClient/livemapserviceclient/build/intermediates/res/merged/androidTest/debug/drawable-xxhdpi-v4/abc_ic_star_half_black_48dp.png",
         "source": "/Users/geonyounglim/.android/build-cache/c4aef7e0ac3640e15c0bbe4fad4ef50a991fc9e1/output/res/drawable-xxhdpi-v4/abc_ic_star_half_black_48dp.png"
+    },
+    {
+        "merged": "/Users/geonyounglim/AndroidStudioProjects/LivemapClient/livemapserviceclient/build/intermediates/res/merged/androidTest/debug/drawable-xxhdpi-v4/abc_btn_switch_to_on_mtrl_00001.9.png",
+        "source": "/Users/geonyounglim/.android/build-cache/c4aef7e0ac3640e15c0bbe4fad4ef50a991fc9e1/output/res/drawable-xxhdpi-v4/abc_btn_switch_to_on_mtrl_00001.9.png"
     },
     {
         "merged": "/Users/geonyounglim/AndroidStudioProjects/LivemapClient/livemapserviceclient/build/intermediates/res/merged/androidTest/debug/drawable-xxhdpi-v4/abc_scrubber_control_off_mtrl_alpha.png",

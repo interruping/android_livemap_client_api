@@ -1,8 +1,11 @@
 package net.solarcode.livemapserviceclient;
 
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -12,12 +15,16 @@ import java.nio.ByteOrder;
  */
 
 public class LiveMapSSLConnReaderAsyncTask  extends AsyncTask<InputStream, Void, ByteBuffer> {
-    LiveMapServerCommunicatorListener _targetListener;
-    LiveMapSSLConnReaderAsyncTaskListener _listener;
+    private LiveMapServerCommunicatorListener _targetListener;
+    private LiveMapSSLConnReaderAsyncTaskListener _listener;
+
+    private Handler _mainHandler;
+
 
     public LiveMapSSLConnReaderAsyncTask(LiveMapServerCommunicatorListener targetListener) {
         super();
         _targetListener = targetListener;
+        _mainHandler = new Handler(Looper.getMainLooper());
     }
 
     public void setTaskListener(LiveMapSSLConnReaderAsyncTaskListener taskListener) {
@@ -80,8 +87,25 @@ public class LiveMapSSLConnReaderAsyncTask  extends AsyncTask<InputStream, Void,
             returnByte = ByteBuffer.allocate(bodyDataSize);
             returnByte.put(bodyBuffer, 0, bodyDataSize);
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (final IOException e) {
+             _mainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    _listener.IOError(new Error(e.getMessage(), e.getCause()));
+                }
+            });
+            cancel(true);
+            return null;
+        } catch (final Exception e) {
+            _mainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    _listener.unknownHostError(new Error(e.getMessage(), e.getCause()));
+                }
+            });
+            cancel(true);
+            return null;
+
         }
 
 
