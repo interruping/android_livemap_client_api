@@ -19,7 +19,7 @@ public class LiveMapService implements LiveMapServerCommunicatorListener {
 
 
     public void asyncStart() {
-       LiveMapServerCommunicator sc = new LiveMapServerCommunicator(ServerType.SSLSOCKETSERVER, "livemap-server-certification.net", 1212);
+       LiveMapServerCommunicator sc = new LiveMapServerCommunicator(ServerType.SSLSOCKETSERVER, "INPUT_YOUR_LIVEMAP_SERVER_URL", 1212);
 
         sc.setListener(this);
         sc.open();
