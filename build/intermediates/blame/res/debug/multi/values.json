@@ -1,6 +1,6 @@
 [
     {
-        "outputFile": "/Users/geonyounglim/AndroidStudioProjects/LivemapClient/livemapserviceclient/build/intermediates/incremental/mergeDebugResources/merged.dir/values/values.xml",
+        "outputFile": "/Users/geonyounglim/AndroidStudioProjects/LivemapClient/android_livemap_client_api/build/intermediates/incremental/mergeDebugResources/merged.dir/values/values.xml",
         "map": [
             {
                 "to": {
@@ -4039,7 +4039,7 @@
                     "endOffset": 34498
                 },
                 "from": {
-                    "file": "/Users/geonyounglim/AndroidStudioProjects/LivemapClient/livemapserviceclient/src/main/res/values/strings.xml",
+                    "file": "/Users/geonyounglim/AndroidStudioProjects/LivemapClient/android_livemap_client_api/src/main/res/values/strings.xml",
                     "position": {
                         "startLine": 1,
                         "startColumn": 4,
