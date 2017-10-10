@@ -174,8 +174,8 @@ public class LiveMapSSLSocketAsyncBuilder extends AsyncTask<SSLSocket[], Void, V
                 });
             }
 
-//            socketRef[0].setSoTimeout(3000);
-//            socketRef[0].getInetAddress().isReachable(3000);
+            socketRef[0].setSoTimeout(5000);
+            socketRef[0].getInetAddress().isReachable(5000);
 
             _inputStreamRef[0] = socketRef[0].getInputStream();
             _outputStreamRef[0] = socketRef[0].getOutputStream();

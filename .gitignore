@@ -114,3 +114,6 @@ freeline_project_description.json
 # Windows clutter
 Thumbs.db
 
+#Doxygen generate file.
+./doc/html
+./doc/latex

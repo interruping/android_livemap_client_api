@@ -102,7 +102,6 @@ public class LiveMapSSLConnWriterAsyncTask extends AsyncTask<OutputStream, Void,
     @Override
     protected Void doInBackground(OutputStream... params) {
         OutputStream outputStream = params[0];
-        //String forConvert = new String(_tmpBuffer[0].array());
         try {
             int length_info_for_4byte_header = _tmpBuffer[0].array().length;
 

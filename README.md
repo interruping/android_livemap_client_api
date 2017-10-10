@@ -57,7 +57,14 @@ android_livemap_client_api의 부모 프로젝트에서 submodule update git 명
 
     $ git pull origin Release
 
+Android LiveMapClient API 문서 보기
+=======
 
+Android LiveMapClient API의 문서는 Doxygen으로 자동 생성하도록 작성하였습니다.
+프로젝트의 루트 디렉토리에서 doxygen 명령을 실행하여 doc/폴더에 html 과 latex
+포멧으로 API문서를 볼 수 있습니다.
+
+$ doxygen
 
 라이센스
 =======
