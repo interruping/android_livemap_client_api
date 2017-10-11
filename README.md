@@ -57,6 +57,43 @@ android_livemap_client_api의 부모 프로젝트에서 submodule update git 명
 
     $ git pull origin Release
 
+Android LiveMapClient API  예제
+=======
+
+LiveMapSerivce 객체 생성 및 LiveMapServer와 통신 시작.
+
+    import net.solarcode.livemapserviceclient.*;
+
+    public class XXX... implements LiveMapServiceListener {
+    
+        ...
+        public void someMethod() {
+            //LiveMapService 객체 생성 & LiveMapServiceListener 객체 설정.
+            LiveMapService livemapService = new LiveMapService;
+            livemapService.setListener(this);
+            //LiveMapService 서비스 비동기 시작.
+            livemapService.asyncStart();
+        }
+        
+        // livemapService.asyncStart(); 호출 이후, LiveMapServer와 연결이 되고 LiveMapServer로부터 id를 부여받으면 호출됨.
+        @Override
+        public void onServiceReady(LiveMapService livemapService, LiveMapClientNode livemapClientNode) {
+        
+            //서버로부터 발급받은 id 값 읽기.
+            Integer idFromLiveMapServer = livemapClientNode.getID();
+            
+            ...
+            
+            // 좌표 값 서버로 업데이트
+            livemapService.updateUserNode(livemapClientNode);
+            
+            // 다른 클라이언트에게 메시지 전송
+            livemapService.sendMessage(idFromLiveMapServer, [다른 클라이언트 id], "Hello there!");
+        
+        }
+        ...
+    }
+
 Android LiveMapClient API 문서 보기
 =======
 
@@ -64,10 +101,10 @@ Android LiveMapClient API의 문서는 Doxygen으로 자동 생성하도록 작�
 프로젝트의 루트 디렉토리에서 doxygen 명령을 실행하여 doc/폴더에 html 과 latex
 포멧으로 API문서를 볼 수 있습니다.
 
-$ doxygen
+    $ doxygen
 
 라이센스
 =======
-이 프로젝트는 Apache License 2.0 라이센스를 따릅니다. 자세한 사항은 [LICENSE.txt](https://github.com/interruping/livemap-server/blob/Develop/LICENSE)파일을 참조하세요.
+이 프로젝트는 Apache License 2.0 라이센스를 따릅니다. 자세한 사항은 [LICENSE.txt](https://github.com/interruping/android_livemap_client_api/blob/master/LICENSE)파일을 참조하세요.
 
 
