@@ -190,9 +190,14 @@ public final class LiveMapServiceCollection {
 
             addSegment(ByteUtility.intTo4Byte(senderId));
             addSegment(ByteUtility.intTo4Byte(receiverId));
-            addSegment(ByteUtility.intTo4Byte(msg.length()));
+            addSegment(ByteUtility.intTo4Byte(msg.getBytes().length));
 
-            addSegment(ByteBuffer.wrap(msg.getBytes()));
+            try {
+                addSegment(ByteBuffer.wrap(msg.getBytes("UTF-8")));
+            } catch (Exception e) {
+                addSegment(ByteBuffer.wrap(msg.getBytes()));
+            }
+
 
         }
 
