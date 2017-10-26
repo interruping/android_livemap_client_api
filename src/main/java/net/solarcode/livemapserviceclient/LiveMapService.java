@@ -32,13 +32,14 @@ public class LiveMapService implements LiveMapServerCommunicatorListener {
     private Queue<LiveMapCommandFormBase> _commandQueue;
     private LiveMapServerCommunicator _serverCommunicator;
     private LiveMapServiceListener _listener;
+    private String _host;
 
     /*!
      @brief 생성자 매서드
      */
     public LiveMapService () {
         _commandQueue = new LinkedList<LiveMapCommandFormBase>();
-
+        _host = null;
     }
 
     /*!
@@ -49,7 +50,14 @@ public class LiveMapService implements LiveMapServerCommunicatorListener {
               따라서 onServiceReady() 호출 이전에 setListener(), getListener() 매서드 이외의 매서드는 사용할 수 없다.
      */
     public void asyncStart() {
-       LiveMapServerCommunicator sc = new LiveMapServerCommunicator(ServerType.SSLSOCKETSERVER, "INPUT_YOUR_LIVEMAP_SERVER_URL", 1212);
+        LiveMapServerCommunicator sc = null;
+
+        if ( _host == null ){
+            sc = new LiveMapServerCommunicator(ServerType.SSLSOCKETSERVER, "localhost", 1212);
+        } else {
+            sc = new LiveMapServerCommunicator(ServerType.SSLSOCKETSERVER, _host, 1212);
+        }
+
 
         sc.setListener(this);
         sc.open();
@@ -122,6 +130,19 @@ public class LiveMapService implements LiveMapServerCommunicatorListener {
         return type;
     }
 
+    /*!
+     @brief LiveMapServer 도메인 or IPv4 주소 setter
+     */
+    public void setHost(String host) {
+        _host = host;
+    }
+    /*!
+     @brief LiveMapServer 도메인 or IPv4 주소 getter
+     */
+    public String getHost() {
+        return _host;
+    }
+
     private ByteBuffer readContent(byte[] rawByte) {
         byte[] contentBuffer = Arrays.copyOfRange(rawByte, 4, rawByte.length);
         ByteBuffer resultBuffer = ByteBuffer.wrap(contentBuffer);
@@ -132,7 +153,6 @@ public class LiveMapService implements LiveMapServerCommunicatorListener {
 
     @Override
     public boolean readyToWriteToLiveMapServer(ByteBuffer[] buffer) {
-        System.out.println("Current command queue size:" + _commandQueue.size());
         if ( _commandQueue.size() == 0 ) {
             return false;
         }
