@@ -87,11 +87,37 @@ LiveMapSerivce 객체 생성 및 LiveMapServer와 통신 시작.
             // 좌표 값 서버로 업데이트
             livemapService.updateUserNode(livemapClientNode);
             
-            // 다른 클라이언트에게 메시지 전송
+            // 사용자의 좌표 값과 다른 노드들이 존재하는지 알고 싶은 좌표 업데이트
+            livemapService.updateUserNode(livemapClientNode, 보고싶은 위도, 보고싶은 경도);
+            
+            // 다른 사용자 노드에게 메시지 전송
             livemapService.sendMessage(idFromLiveMapServer, [다른 클라이언트 id], "Hello there!");
         
         }
-        ...
+        
+        ///LiveMapServiceListener
+        ///서버에 연결 실패했을경우 호출되는 콜백
+        void connectionFailToLiveMapServer(LiveMapService livemapService, Error err) {
+            ...
+        }
+        
+        ///LiveMapServiceListener
+        ///LiveMapService가 LiveMapServer에 연결되었고 서비스 이용할 준비가 되었을때 호출됨
+        void connectionLostFromLiveMapServer(LiveMapService livemapService, Error err) {
+            ...
+        }
+        
+        ///LiveMapServiceListener
+        /// 사용자가 최근 업데이트한 위치로부터 가까운 노드정보를 서버로부터 받았을때 호출됨
+        void nearNodesFromLiveMapServer(LiveMapService livemapService, LiveMapClientNode[] nearNodes) {
+            ...
+        }
+        
+        ///LiveMapServiceListener
+        /// 다른 사용자 노드가 사용자에게 메시지를 보냈을 때 호출됨.
+        void receivedMessage(int senderId, String message) {
+            ...
+        }
     }
 
 Android LiveMapClient API 문서 보기
