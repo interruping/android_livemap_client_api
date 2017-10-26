@@ -71,6 +71,7 @@ LiveMapSerivce 객체 생성 및 LiveMapServer와 통신 시작.
             //LiveMapService 객체 생성 & LiveMapServiceListener 객체 설정.
             LiveMapService livemapService = new LiveMapService;
             livemapService.setListener(this);
+            livemapService.setHost("이 곳에 라이브맵 서버 주소를 적으세요.");
             //LiveMapService 서비스 비동기 시작.
             livemapService.asyncStart();
         }
